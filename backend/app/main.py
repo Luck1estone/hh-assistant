@@ -5,11 +5,19 @@ from typing import Literal
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from backend.app.api.resumes import router as resumes_router
+from backend.app.storage.db import init_db
 
 
 app = FastAPI(
     title="HH Job Assistant API",
     version="0.1.0",
+)
+
+init_db()
+
+app.include_router(
+    resumes_router
 )
 
 
