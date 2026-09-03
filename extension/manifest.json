@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "HH Job Assistant",
+  "version": "0.1.0",
+  "description": "Помощник для анализа вакансий HH.ru и ведения трекера откликов.",
+
+  "permissions": [
+    "storage"
+  ],
+
+  "host_permissions": [
+    "http://127.0.0.1:8000/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://hh.ru/vacancy/*",
+        "https://*.hh.ru/vacancy/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_title": "HH Job Assistant"
+  }
+}

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environment
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Databases / local data
+*.db
+*.sqlite
+*.sqlite3
+backend/data/*
+!backend/data/.gitkeep
+
+# Personal resumes
+*.pdf
+resumes/
+backend/data/resumes/
+backend/resumes/uploads/
+
+# Credentials
+credentials.json
+credentials/
+secrets/
+*.key
+*.pem
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Extension builds
+extension/dist/
+extension/build/
+*.xpi
+*.crx
