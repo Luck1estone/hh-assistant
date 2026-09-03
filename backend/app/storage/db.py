@@ -15,10 +15,7 @@ def get_connection() -> sqlite3.Connection:
         exist_ok=True,
     )
 
-    connection = sqlite3.connect(
-        DB_PATH
-    )
-
+    connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
 
     return connection
@@ -26,6 +23,7 @@ def get_connection() -> sqlite3.Connection:
 
 def init_db() -> None:
     with get_connection() as connection:
+
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS resumes (
@@ -37,3 +35,18 @@ def init_db() -> None:
             )
             """
         )
+
+        columns = {
+            row["name"]
+            for row in connection.execute(
+                "PRAGMA table_info(resumes)"
+            ).fetchall()
+        }
+
+        if "profile" not in columns:
+            connection.execute(
+                """
+                ALTER TABLE resumes
+                ADD COLUMN profile TEXT
+                """
+            )

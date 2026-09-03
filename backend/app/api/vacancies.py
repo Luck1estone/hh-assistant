@@ -26,7 +26,6 @@ class VacancyRequest(BaseModel):
     title: str = ""
     salary: str = ""
     location: str = ""
-
     description: str = ""
     url: str = ""
 
@@ -39,7 +38,7 @@ def analyze_vacancy(
 ) -> dict:
 
     try:
-        result = analyze_against_resumes(
+        analysis = analyze_against_resumes(
             title=vacancy.title,
             description=vacancy.description,
         )
@@ -53,7 +52,7 @@ def analyze_vacancy(
     return {
         "vacancy_id": vacancy.vacancyId,
 
-        **result,
+        **analysis,
 
         "auto_manual_ratio":
             "Пока не определено",
@@ -62,5 +61,5 @@ def analyze_vacancy(
             "Пока не определены",
 
         "comment":
-            "Анализ выполнен по загруженным резюме.",
+            "Match рассчитан по загруженным резюме.",
     }

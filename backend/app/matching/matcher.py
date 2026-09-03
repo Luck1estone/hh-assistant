@@ -6,46 +6,48 @@ from backend.app.resumes.skills import extract_skills
 from backend.app.storage.resume_repository import list_resumes
 
 
+# Вес технологий.
+# Чем технология характернее для нашей работы,
+# тем сильнее она влияет на match score.
 SKILL_WEIGHTS: dict[str, float] = {
-    "Java": 3.0,
-    "Kotlin": 2.0,
+    "Java": 4.0,
+    "Kotlin": 2.5,
 
-    "REST Assured": 3.0,
-    "REST API": 2.0,
+    "REST Assured": 4.0,
+    "REST API": 2.5,
 
-    "Selenide": 2.5,
-    "Selenium": 2.0,
-    "Appium": 3.0,
+    "Selenide": 3.5,
+    "Selenium": 3.0,
+    "Appium": 4.0,
 
-    "JUnit": 1.5,
-    "TestNG": 1.5,
+    "JUnit": 2.0,
+    "TestNG": 2.0,
 
-    "Kafka": 2.5,
-    "PostgreSQL": 2.0,
-    "SQL": 1.5,
-    "gRPC": 2.5,
+    "Kafka": 3.0,
+    "PostgreSQL": 2.5,
+    "SQL": 2.0,
+    "gRPC": 3.0,
+    "MockServer": 2.0,
 
-    "MockServer": 1.5,
+    "GitLab CI/CD": 2.5,
+    "Jenkins": 2.0,
+    "CI/CD": 2.0,
 
-    "GitLab CI/CD": 2.0,
-    "Jenkins": 1.5,
-    "CI/CD": 1.5,
+    "Docker": 2.0,
+    "Kubernetes": 3.0,
+    "Terraform": 3.0,
+    "Linux": 2.0,
 
-    "Docker": 1.5,
-    "Kubernetes": 2.0,
-    "Terraform": 2.0,
-    "Linux": 1.5,
+    "Grafana": 1.5,
+    "Kibana": 1.5,
+    "Prometheus": 1.5,
 
-    "Grafana": 1.0,
-    "Kibana": 1.0,
-    "Prometheus": 1.0,
-
-    "Spring": 1.5,
+    "Spring": 2.0,
     "Maven": 1.0,
     "Gradle": 1.0,
     "Git": 0.5,
 
-    "Microservices": 2.0,
+    "Microservices": 2.5,
     "Allure": 1.0,
 }
 
@@ -58,30 +60,14 @@ ROLE_KEYWORDS = {
             "full stack",
             "фуллстек",
         ],
-        "body": [
+        "description": [
+            "web",
+            "ui",
+            "api",
             "frontend",
             "backend",
-            "web",
-            "api",
-            "ui",
             "selenide",
             "selenium",
-        ],
-    },
-
-    "mobile": {
-        "title": [
-            "mobile",
-            "мобиль",
-            "android",
-            "ios",
-        ],
-        "body": [
-            "appium",
-            "android",
-            "ios",
-            "mobile",
-            "xcode",
         ],
     },
 
@@ -92,13 +78,30 @@ ROLE_KEYWORDS = {
             "бэкенд",
             "бекенд",
         ],
-        "body": [
+        "description": [
+            "rest api",
             "kafka",
             "grpc",
-            "rest api",
-            "microservice",
-            "микросервис",
             "postgresql",
+            "microservices",
+            "микросервис",
+        ],
+    },
+
+    "mobile": {
+        "title": [
+            "mobile",
+            "android",
+            "ios",
+            "мобиль",
+        ],
+        "description": [
+            "appium",
+            "android",
+            "ios",
+            "xcode",
+            "android studio",
+            "эмулятор",
         ],
     },
 
@@ -107,15 +110,15 @@ ROLE_KEYWORDS = {
             "platform",
             "infrastructure",
             "инфраструктур",
-            "qa platform",
             "test infrastructure",
+            "qa platform",
         ],
-        "body": [
+        "description": [
             "kubernetes",
             "terraform",
             "docker",
-            "gitlab ci",
             "jenkins",
+            "gitlab ci",
             "linux",
             "infrastructure",
         ],
@@ -126,10 +129,11 @@ ROLE_KEYWORDS = {
             "sdet",
             "aqa",
             "automation",
-            "автоматизац",
+            "автоматизатор",
+            "автоматизации тестирования",
             "автотест",
         ],
-        "body": [
+        "description": [
             "rest assured",
             "selenide",
             "selenium",
@@ -141,55 +145,55 @@ ROLE_KEYWORDS = {
 }
 
 
+# Насколько тип одного резюме подходит типу вакансии.
 ROLE_COMPATIBILITY = {
-    "fullstack": {
-        "fullstack": 100,
-        "sdet": 82,
-        "backend": 72,
-        "mobile": 55,
-        "platform": 40,
+    "sdet": {
+        "sdet": 100,
+        "backend": 86,
+        "fullstack": 86,
+        "mobile": 72,
+        "platform": 65,
     },
 
     "backend": {
         "backend": 100,
-        "sdet": 85,
-        "fullstack": 72,
-        "platform": 60,
-        "mobile": 40,
+        "sdet": 88,
+        "fullstack": 73,
+        "platform": 62,
+        "mobile": 42,
+    },
+
+    "fullstack": {
+        "fullstack": 100,
+        "sdet": 88,
+        "backend": 74,
+        "mobile": 58,
+        "platform": 45,
     },
 
     "mobile": {
         "mobile": 100,
-        "sdet": 75,
-        "fullstack": 62,
-        "backend": 45,
-        "platform": 35,
+        "sdet": 78,
+        "fullstack": 65,
+        "backend": 48,
+        "platform": 40,
     },
 
     "platform": {
         "platform": 100,
-        "sdet": 68,
-        "backend": 60,
-        "fullstack": 48,
-        "mobile": 35,
-    },
-
-    "sdet": {
-        "sdet": 100,
-        "backend": 82,
-        "fullstack": 82,
-        "mobile": 72,
-        "platform": 62,
+        "sdet": 72,
+        "backend": 65,
+        "fullstack": 52,
+        "mobile": 38,
     },
 }
 
 
-@dataclass
-class ResumeScore:
+@dataclass(slots=True)
+class ResumeMatch:
     resume_id: str
     resume_name: str
-
-    profile: str
+    resume_profile: str
 
     score: int
     skill_score: int
@@ -206,49 +210,12 @@ def normalize(text: str) -> str:
     )
 
 
-def detect_resume_profile(
-    resume_name: str,
-) -> str:
-
-    name = normalize(resume_name)
-
-    if (
-        "mobile" in name
-        or "appium" in name
-        or "мобиль" in name
-    ):
-        return "mobile"
-
-    if (
-        "platform" in name
-        or "infrastructure" in name
-        or "инфраструктур" in name
-    ):
-        return "platform"
-
-    if (
-        "backend" in name
-        or "back-end" in name
-    ):
-        return "backend"
-
-    if (
-        "fullstack" in name
-        or "full-stack" in name
-        or "full_stack" in name
-    ):
-        return "fullstack"
-
-    return "sdet"
-
-
 def detect_vacancy_profile(
     title: str,
     description: str,
-) -> str:
-
-    title_normalized = normalize(title)
-    body_normalized = normalize(description)
+) -> tuple[str, dict[str, int]]:
+    title = normalize(title)
+    description = normalize(description)
 
     scores = {
         role: 0
@@ -257,24 +224,26 @@ def detect_vacancy_profile(
 
     for role, keywords in ROLE_KEYWORDS.items():
 
-        # Название вакансии весит очень сильно.
+        # Название вакансии очень важное.
         for keyword in keywords["title"]:
-            if keyword in title_normalized:
-                scores[role] += 10
+            if keyword in title:
+                scores[role] += 12
 
-        for keyword in keywords["body"]:
-            if keyword in body_normalized:
+        # Описание тоже учитываем,
+        # но оно не должно перетянуть очевидный title.
+        for keyword in keywords["description"]:
+            if keyword in description:
                 scores[role] += 2
 
-    # Если явного профиля нет,
-    # для нашей задачи дефолт — обычный SDET/AQA.
     if max(scores.values()) == 0:
-        return "sdet"
+        return "sdet", scores
 
-    return max(
+    best_role = max(
         scores,
         key=scores.get,
     )
+
+    return best_role, scores
 
 
 def calculate_skill_score(
@@ -282,6 +251,8 @@ def calculate_skill_score(
     resume_skills: set[str],
 ) -> int:
 
+    # Если наш extractor вообще не смог найти технологий,
+    # не будем изображать точность.
     if not vacancy_skills:
         return 50
 
@@ -296,7 +267,7 @@ def calculate_skill_score(
         if skill in resume_skills
     )
 
-    if total_weight == 0:
+    if total_weight <= 0:
         return 50
 
     return round(
@@ -315,24 +286,25 @@ def analyze_against_resumes(
 
     if not resumes:
         raise ValueError(
-            "Нет загруженных резюме. "
-            "Сначала добавь хотя бы одно PDF."
+            "В базе нет резюме."
         )
 
     vacancy_text = (
-        f"{title}\n{description}"
+        f"{title}\n\n{description}"
     )
 
     vacancy_skills = extract_skills(
         vacancy_text
     )
 
-    vacancy_profile = detect_vacancy_profile(
-        title,
-        description,
+    vacancy_profile, role_debug = (
+        detect_vacancy_profile(
+            title=title,
+            description=description,
+        )
     )
 
-    results: list[ResumeScore] = []
+    matches: list[ResumeMatch] = []
 
     for resume in resumes:
 
@@ -340,13 +312,11 @@ def analyze_against_resumes(
             resume["text"]
         )
 
-        resume_profile = detect_resume_profile(
-            resume["name"]
-        )
+        resume_profile = resume["profile"]
 
         skill_score = calculate_skill_score(
-            vacancy_skills,
-            resume_skills,
+            vacancy_skills=vacancy_skills,
+            resume_skills=resume_skills,
         )
 
         role_score = (
@@ -355,44 +325,43 @@ def analyze_against_resumes(
             .get(resume_profile, 50)
         )
 
-        # Основную роль играет реальный стек.
-        # Но профиль резюме тоже важен.
+        # Стек важнее названия резюме.
         final_score = round(
-            skill_score * 0.72
-            + role_score * 0.28
+            skill_score * 0.75
+            + role_score * 0.25
         )
 
-        matched = sorted(
+        matched_skills = sorted(
             vacancy_skills
             & resume_skills
         )
 
-        missing = sorted(
+        missing_skills = sorted(
             vacancy_skills
             - resume_skills
         )
 
-        results.append(
-            ResumeScore(
+        matches.append(
+            ResumeMatch(
                 resume_id=resume["id"],
                 resume_name=resume["name"],
-                profile=resume_profile,
+                resume_profile=resume_profile,
 
                 score=final_score,
                 skill_score=skill_score,
                 role_score=role_score,
 
-                matched_skills=matched,
-                missing_skills=missing,
+                matched_skills=matched_skills,
+                missing_skills=missing_skills,
             )
         )
 
-    results.sort(
+    matches.sort(
         key=lambda item: item.score,
         reverse=True,
     )
 
-    best = results[0]
+    best = matches[0]
 
     if best.score >= 75:
         decision = "good"
@@ -415,17 +384,27 @@ def analyze_against_resumes(
         "matched_skills": best.matched_skills,
         "missing_skills": best.missing_skills,
 
+        "vacancy_skills": sorted(
+            vacancy_skills
+        ),
+
         "alternatives": [
             {
-                "resume_id": item.resume_id,
-                "resume_name": item.resume_name,
+                "resume_id": match.resume_id,
+                "resume_name": match.resume_name,
 
-                "profile": item.profile,
+                "profile": match.resume_profile,
 
-                "score": item.score,
-                "skill_score": item.skill_score,
-                "role_score": item.role_score,
+                "score": match.score,
+                "skill_score": match.skill_score,
+                "role_score": match.role_score,
             }
-            for item in results
+            for match in matches
         ],
+
+        # Пока оставим для разработки.
+        # Позже можно удалить.
+        "debug": {
+            "role_scores": role_debug,
+        },
     }

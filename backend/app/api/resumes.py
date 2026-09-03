@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from pydantic import BaseModel
+
+class ResumeProfileUpdate(BaseModel):
+    profile: str
+
 from ..storage.db import (
     DB_PATH,
     get_connection,
@@ -33,6 +38,14 @@ router = APIRouter(
     tags=["resumes"],
 )
 
+ALLOWED_PROFILES = {
+    "sdet",
+    "fullstack",
+    "mobile",
+    "backend",
+    "platform",
+}
+
 
 @router.get("")
 def get_resumes() -> list[dict]:
@@ -46,6 +59,7 @@ def get_resumes() -> list[dict]:
                 "id": resume["id"],
                 "name": resume["name"],
                 "filename": resume["filename"],
+                "profile": resume["profile"],
                 "skills": sorted(
                     extract_skills(
                         resume["text"]
@@ -208,4 +222,105 @@ def debug_resume(
         # Не возвращаем всё резюме,
         # только первые 2000 символов для отладки.
         "text_preview": text[:2000],
+    }
+
+@router.post("")
+async def upload_resume(
+    name: str = Form(...),
+    profile: str = Form(...),
+    file: UploadFile = File(...),
+) -> dict:
+
+    profile = profile.strip().lower()
+
+    if profile not in ALLOWED_PROFILES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Invalid profile. "
+                "Allowed: sdet, fullstack, mobile, "
+                "backend, platform"
+            ),
+        )
+
+    filename = file.filename or "resume.pdf"
+
+    if not filename.lower().endswith(".pdf"):
+        raise HTTPException(
+            status_code=400,
+            detail="Пока поддерживаются только PDF",
+        )
+
+    content = await file.read()
+
+    try:
+        text = extract_pdf_text(content)
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        ) from error
+
+    resume = create_resume(
+        name=name.strip(),
+        filename=filename,
+        text=text,
+        profile=profile,
+    )
+
+    return {
+        "id": resume["id"],
+        "name": resume["name"],
+        "profile": resume["profile"],
+        "filename": filename,
+
+        "skills": sorted(
+            extract_skills(text)
+        ),
+
+        "text_length": len(text),
+    }
+
+@router.patch("/{resume_id}/profile")
+def update_resume_profile(
+    resume_id: str,
+    request: ResumeProfileUpdate,
+) -> dict:
+
+    profile = request.profile.strip().lower()
+
+    if profile not in ALLOWED_PROFILES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Invalid profile. "
+                "Allowed: sdet, fullstack, mobile, "
+                "backend, platform"
+            ),
+        )
+
+    with get_connection() as connection:
+
+        cursor = connection.execute(
+            """
+            UPDATE resumes
+            SET profile = ?
+            WHERE id = ?
+            """,
+            (
+                profile,
+                resume_id,
+            ),
+        )
+
+    if cursor.rowcount == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="Resume not found",
+        )
+
+    return {
+        "id": resume_id,
+        "profile": profile,
     }

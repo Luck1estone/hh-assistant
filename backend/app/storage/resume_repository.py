@@ -10,6 +10,7 @@ def create_resume(
     name: str,
     filename: str,
     text: str,
+    profile: str,
 ) -> dict:
 
     resume_id = str(uuid4())
@@ -26,15 +27,17 @@ def create_resume(
                 name,
                 filename,
                 text,
+                profile,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
                 resume_id,
                 name,
                 filename,
                 text,
+                profile,
                 created_at,
             ),
         )
@@ -44,6 +47,7 @@ def create_resume(
         "name": name,
         "filename": filename,
         "text": text,
+        "profile": profile,
         "created_at": created_at,
     }
 
@@ -58,6 +62,7 @@ def list_resumes() -> list[dict]:
                 name,
                 filename,
                 text,
+                profile,
                 created_at
             FROM resumes
             ORDER BY created_at
