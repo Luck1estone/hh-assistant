@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from ..storage.db import (
+    DB_PATH,
+    get_connection,
+)
+
 from fastapi import (
     APIRouter,
     File,
@@ -118,4 +123,89 @@ def remove_resume(
 
     return {
         "deleted": True,
+    }
+
+@router.get("/status")
+def get_resume_storage_status() -> dict:
+    with get_connection() as connection:
+
+        count = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM resumes
+            """
+        ).fetchone()[0]
+
+        rows = connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                filename,
+                created_at,
+                LENGTH(text) AS text_length
+            FROM resumes
+            ORDER BY created_at DESC
+            """
+        ).fetchall()
+
+    return {
+        "database": str(DB_PATH),
+        "resume_count": count,
+        "resumes": [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "filename": row["filename"],
+                "created_at": row["created_at"],
+                "text_length": row["text_length"],
+            }
+            for row in rows
+        ],
+    }
+
+@router.get("/{resume_id}/debug")
+def debug_resume(
+    resume_id: str,
+) -> dict:
+
+    with get_connection() as connection:
+
+        row = connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                filename,
+                text,
+                created_at
+            FROM resumes
+            WHERE id = ?
+            """,
+            (resume_id,),
+        ).fetchone()
+
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Resume not found",
+        )
+
+    text = row["text"]
+
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "filename": row["filename"],
+        "created_at": row["created_at"],
+
+        "text_length": len(text),
+
+        "skills": sorted(
+            extract_skills(text)
+        ),
+
+        # Не возвращаем всё резюме,
+        # только первые 2000 символов для отладки.
+        "text_preview": text[:2000],
     }
