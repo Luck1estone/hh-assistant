@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>HH Job Assistant — Резюме</title>
+
+    <link
+        rel="stylesheet"
+        href="options.css"
+    >
+</head>
+
+<body>
+
+<div class="page">
+
+    <header class="header">
+
+        <div>
+            <h1>HH Job Assistant</h1>
+
+            <p>
+                Локальный менеджер резюме
+            </p>
+        </div>
+
+        <div
+            id="backend-status"
+            class="backend-status checking"
+        >
+            Backend...
+        </div>
+
+    </header>
+
+
+    <main>
+
+        <section class="card">
+
+            <div class="section-header">
+
+                <div>
+                    <h2>Мои резюме</h2>
+
+                    <p>
+                        Они хранятся только в локальной SQLite базе.
+                    </p>
+                </div>
+
+                <button
+                    id="refresh-button"
+                    class="button secondary"
+                >
+                    Обновить
+                </button>
+
+            </div>
+
+
+            <div
+                id="resume-list"
+                class="resume-list"
+            >
+                Загрузка...
+            </div>
+
+        </section>
+
+
+        <section class="card">
+
+            <h2>Добавить резюме</h2>
+
+            <form id="upload-form">
+
+                <label>
+                    Профиль
+
+                    <select
+                        id="profile"
+                        required
+                    >
+                        <option value="">
+                            Выбери профиль
+                        </option>
+
+                        <option value="sdet">
+                            SDET / QA Automation Java
+                        </option>
+
+                        <option value="fullstack">
+                            Fullstack QA
+                        </option>
+
+                        <option value="backend">
+                            Backend QA
+                        </option>
+
+                        <option value="mobile">
+                            Mobile QA Automation
+                        </option>
+
+                        <option value="platform">
+                            QA Platform / Test Infrastructure
+                        </option>
+                    </select>
+                </label>
+
+
+                <label>
+                    Название
+
+                    <input
+                        id="resume-name"
+                        type="text"
+                        placeholder="Например: Fullstack QA Engineer"
+                        required
+                    >
+                </label>
+
+
+                <label>
+                    PDF-файл
+
+                    <input
+                        id="resume-file"
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        required
+                    >
+                </label>
+
+
+                <button
+                    id="upload-button"
+                    class="button primary"
+                    type="submit"
+                >
+                    Загрузить PDF
+                </button>
+
+            </form>
+
+
+            <div
+                id="upload-result"
+                class="message"
+            ></div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="options.js"></script>
+
+</body>
+</html>
