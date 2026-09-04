@@ -90,3 +90,55 @@ def delete_resume(
         )
 
         return cursor.rowcount > 0
+
+
+def update_resume_metadata(
+    resume_id: str,
+    *,
+    name: str,
+    profile: str,
+) -> bool:
+
+    with get_connection() as connection:
+        cursor = connection.execute(
+            """
+            UPDATE resumes
+            SET
+                name = ?,
+                profile = ?
+            WHERE id = ?
+            """,
+            (
+                name,
+                profile,
+                resume_id,
+            ),
+        )
+
+        return cursor.rowcount > 0
+
+
+def replace_resume_content(
+    resume_id: str,
+    *,
+    filename: str,
+    text: str,
+) -> bool:
+
+    with get_connection() as connection:
+        cursor = connection.execute(
+            """
+            UPDATE resumes
+            SET
+                filename = ?,
+                text = ?
+            WHERE id = ?
+            """,
+            (
+                filename,
+                text,
+                resume_id,
+            ),
+        )
+
+        return cursor.rowcount > 0

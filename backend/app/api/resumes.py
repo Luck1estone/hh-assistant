@@ -1,15 +1,17 @@
 from __future__ import annotations
-
 from pydantic import BaseModel
-
-class ResumeProfileUpdate(BaseModel):
-    profile: str
-
+from ..storage.resume_repository import (
+    create_resume,
+    delete_resume,
+    list_resumes,
+    update_resume_metadata,
+    replace_resume_content,
+)
+from pydantic import BaseModel
 from ..storage.db import (
     DB_PATH,
     get_connection,
 )
-
 from fastapi import (
     APIRouter,
     File,
@@ -17,15 +19,12 @@ from fastapi import (
     HTTPException,
     UploadFile,
 )
-
 from ..resumes.parser import (
     extract_pdf_text,
 )
-
 from ..resumes.skills import (
     extract_skills,
 )
-
 from ..storage.resume_repository import (
     create_resume,
     delete_resume,
@@ -33,10 +32,20 @@ from ..storage.resume_repository import (
 )
 
 
+class ResumeProfileUpdate(BaseModel):
+    profile: str
+
+
+class ResumeUpdateRequest(BaseModel):
+    name: str
+    profile: str
+
+
 router = APIRouter(
     prefix="/api/resumes",
     tags=["resumes"],
 )
+
 
 ALLOWED_PROFILES = {
     "sdet",
@@ -282,13 +291,63 @@ async def upload_resume(
         "text_length": len(text),
     }
 
-@router.patch("/{resume_id}/profile")
-def update_resume_profile(
+# @router.patch("/{resume_id}/profile")
+# def update_resume_profile(
+#     resume_id: str,
+#     request: ResumeProfileUpdate,
+# ) -> dict:
+
+#     profile = request.profile.strip().lower()
+
+#     if profile not in ALLOWED_PROFILES:
+#         raise HTTPException(
+#             status_code=400,
+#             detail=(
+#                 "Invalid profile. "
+#                 "Allowed: sdet, fullstack, mobile, "
+#                 "backend, platform"
+#             ),
+#         )
+
+#     with get_connection() as connection:
+
+#         cursor = connection.execute(
+#             """
+#             UPDATE resumes
+#             SET profile = ?
+#             WHERE id = ?
+#             """,
+#             (
+#                 profile,
+#                 resume_id,
+#             ),
+#         )
+
+#     if cursor.rowcount == 0:
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Resume not found",
+#         )
+
+#     return {
+#         "id": resume_id,
+#         "profile": profile,
+#     }
+
+@router.patch("/{resume_id}")
+def update_resume(
     resume_id: str,
-    request: ResumeProfileUpdate,
+    request: ResumeUpdateRequest,
 ) -> dict:
 
+    name = request.name.strip()
     profile = request.profile.strip().lower()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Название не может быть пустым",
+        )
 
     if profile not in ALLOWED_PROFILES:
         raise HTTPException(
@@ -300,21 +359,13 @@ def update_resume_profile(
             ),
         )
 
-    with get_connection() as connection:
+    updated = update_resume_metadata(
+        resume_id,
+        name=name,
+        profile=profile,
+    )
 
-        cursor = connection.execute(
-            """
-            UPDATE resumes
-            SET profile = ?
-            WHERE id = ?
-            """,
-            (
-                profile,
-                resume_id,
-            ),
-        )
-
-    if cursor.rowcount == 0:
+    if not updated:
         raise HTTPException(
             status_code=404,
             detail="Resume not found",
@@ -322,5 +373,58 @@ def update_resume_profile(
 
     return {
         "id": resume_id,
+        "name": name,
         "profile": profile,
+    }
+
+
+@router.put("/{resume_id}/pdf")
+async def replace_resume_pdf(
+    resume_id: str,
+    file: UploadFile = File(...),
+) -> dict:
+
+    filename = (
+        file.filename
+        or "resume.pdf"
+    )
+
+    if not filename.lower().endswith(".pdf"):
+        raise HTTPException(
+            status_code=400,
+            detail="Поддерживаются только PDF",
+        )
+
+    content = await file.read()
+
+    try:
+        text = extract_pdf_text(
+            content
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        ) from error
+
+    updated = replace_resume_content(
+        resume_id,
+        filename=filename,
+        text=text,
+    )
+
+    if not updated:
+        raise HTTPException(
+            status_code=404,
+            detail="Resume not found",
+        )
+
+    return {
+        "id": resume_id,
+        "filename": filename,
+        "text_length": len(text),
+        "skills": sorted(
+            extract_skills(text)
+        ),
     }

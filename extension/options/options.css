@@ -344,9 +344,62 @@ select:focus {
 
 }
 
+
 #open-resume-manager {
     margin-top: 8px;
 
     background: #f3f3f3;
     color: #222;
+}
+
+
+.resume-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.edit-panel {
+    display: none;
+
+    grid-column: 1 / -1;
+
+    margin-top: 4px;
+    padding-top: 16px;
+
+    border-top: 1px solid #eeeeee;
+}
+
+
+.edit-panel.visible {
+    display: grid;
+
+    gap: 12px;
+}
+
+
+.edit-actions {
+    display: flex;
+
+    gap: 8px;
+}
+
+
+.edit-actions .button {
+    width: auto;
+}
+
+
+.file-row {
+    padding-top: 12px;
+
+    border-top: 1px solid #eeeeee;
+}
+
+
+.replace-result {
+    margin-top: 8px;
+
+    font-size: 12px;
 }
